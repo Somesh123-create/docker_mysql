@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: mypassword
+      MYSQL_DATABASE: mydatabase
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+  web:
+    build:
+      context: ./myproject
+    volumes:
+      - static-data:/vol/static
+      - media-data:/vol/media
+    depends_on:
+      - db
+    env_file:
+      - ./myproject/.env
+    ports:
+      - "8000:8000"
+    command: sh -c "sh /app/entrypoint.sh"
+
+  nginx:
+    build: ./nginx
+    image: nginx
+    container_name: dj_nginx
+    restart: always
+    volumes:
+      - static-data:/vol/static
+      - media-data:/vol/media
+    ports:
+      - '80:80'
+    depends_on:
+      - web
+
+volumes:
+  static-data:
+  media-data:
